@@ -5,6 +5,7 @@ from spmetrics.utils import (
     run_ngspice_simulation,
     setup_ac_simulation,
     setup_icmr_simulation,
+    setup_trans_simulation,
 )
 from spmetrics.extractor import (
     # DC simulation functions
@@ -16,6 +17,7 @@ from spmetrics.extractor import (
     compute_unity_gain_bandwidth,
     compute_phase_margin,
     compute_ac_gain,
+    compute_leakage_power,
 )
 
 netlist = open("examples/liuLLMbasedAIAgent2025.cir").read()
@@ -80,3 +82,11 @@ icmr_netlist = setup_icmr_simulation(
 run_ngspice_simulation(icmr_netlist)
 icmr = compute_icmr("output_dc_icmr.dat")
 print(f"\nICMR: {icmr:.4f} V")
+
+
+# Calculate leakage power
+# --------------
+tran_netlist = setup_trans_simulation(netlist, input_name="in1", output_nodes=["out"])
+run_ngspice_simulation(tran_netlist)
+leakage_power_netlist = compute_leakage_power("output_tran.dat")
+print(f"\nLeakage Power: {leakage_power_netlist:.4f} W")
