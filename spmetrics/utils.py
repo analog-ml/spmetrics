@@ -51,6 +51,54 @@ def setup_dc_ow_simulation(
     return netlist_ow
 
 
+def setup_icmr_simulation(
+    netlist: str, target_components: list[str] = None, output_node: str = "out"
+) -> str:
+    """
+    Modifies a given SPICE netlist for ICMR (Input Common-Mode Range) simulation by removing control blocks,
+    configuring unity-gain feedback, and appending simulation commands.
+
+    Args:
+        netlist (str): The original SPICE netlist as a string.
+        target_components (list[str], optional): List of MOSFET component names (e.g., ['M1', 'M2']) to update for unity-gain configuration.
+            If None, no components are updated. Defaults to None.
+        output_node (str, optional): The name of the output node to use in the simulation and for feedback replacement. Defaults to "out".
+
+    Returns:
+        str: The modified netlist string, ready for ICMR simulation.
+    """
+
+    # Remove control block
+    modified_netlist = re.sub(r"\.control.*?\.endc", "", netlist, flags=re.DOTALL)
+
+    # Setup Unity-gain configuration
+    updated_lines = []
+    for line in modified_netlist.splitlines():
+        component = line.split()[0] if line.strip() else ""
+        if (
+            component.startswith("M") or component.startswith("m")
+        ) and component in target_components:
+            # Replace 'in1' with output node (e.g. 'out')
+            line = re.sub(r"\bin1\b", output_node, line)
+        if not (line.startswith("Rl") or line.startswith("Cl")):
+            # Skip lines starting with "Rl" or "Cl"
+            updated_lines.append(line)
+    updated_netlist = "\n".join(updated_lines)
+
+    # Append simulation commands
+    simulation_commands = f"""
+    .control
+      dc Vcm 0 1.8 0.001
+      wrdata output_dc_icmr.dat {output_node} I(vdd)
+    .endc
+    """
+    end_index = updated_netlist.index(".end")
+    netlist_icmr_netlist = (
+        updated_netlist[:end_index] + simulation_commands + updated_netlist[end_index:]
+    )
+    return netlist_icmr_netlist
+
+
 def setup_offset_simulation(
     netlist: str,
     target_components: list[str] = None,
@@ -158,4 +206,6 @@ def run_ngspice_simulation(netlist: str) -> None:
     with open("/tmp/temp_netlist.cir", "w") as f:
         f.write(netlist)
 
-    subprocess.run(["ngspice", "-b", "/tmp/temp_netlist.cir"], check=True)
+    subprocess.run(
+        ["ngspice", "-b", "-o", "/tmp/ngspice", "/tmp/temp_netlist.cir"], check=True
+    )

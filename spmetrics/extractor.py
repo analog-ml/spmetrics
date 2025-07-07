@@ -279,3 +279,74 @@ def compute_ac_gain(logfile: str) -> float:
     else:
         raise ValueError("The input file must have either 3 or 6 columns.")
     return gain
+
+
+def compute_icmr(logfile: str) -> float:
+    """
+    Computes the input common-mode range (ICMR) from a logfile containing DC simulation data.
+    The logfile is expected to be a text file with at least 4 columns:
+    - Column 1: Time
+    - Column 2: Output voltage
+    - Column 3: Input voltage
+    - Column 4: Input voltage (in1)
+
+    Args:
+        logfile (str): Path to the logfile containing the DC simulation data.
+
+    Returns:
+        float: The computed input common-mode range (ICMR) in volts.
+    """
+
+    # Read simulation data
+    data_dc = np.genfromtxt(logfile, skip_header=1)
+
+    # Extract relevant data
+    input_vals = data_dc[19:-19, 0]  # Skip first and last points
+    output_vals = data_dc[19:-19, 1]
+    Idd = np.abs(data_dc[19:-19, 3])
+    # Find indices where input_vals is equal to 0.9
+    indices = np.where(input_vals == 0.9)
+
+    # Check if any indices were found
+    if len(indices[0]) > 0:
+        # Use the first index (assuming you want the first match)
+        index = indices[0][0]
+
+        # Extract the corresponding Idd value
+        iquie = Idd[index]
+        logger.debug(f"iquie (Idd when input = 0.9): {iquie}")
+    else:
+        iquie = None
+        logger.debug("No matching input value found.")
+
+    voff = np.abs(output_vals - input_vals)  # Offset voltage
+    voff_max = np.max(np.abs(output_vals - input_vals))
+    # Define thresholds 20%
+    threshold_idd = iquie - iquie * 0.1
+
+    # Find index ranges
+    # 10% for output
+    indices_idd = np.where(Idd > threshold_idd)[0]
+    indices_voff = np.where(voff < voff_max * 0.9)[0]
+    logger.debug(f"idd valid = {indices_idd}")
+    logger.debug(f"voff valid = {indices_voff}")
+    # Handle different cases
+    if len(indices_idd) > 0 and len(indices_voff) > 0:
+        ic_min_idd = input_vals[indices_idd[0]]
+        ic_min_voff = input_vals[indices_voff[0]]
+        ic_max_idd = input_vals[indices_idd[-1]]
+        ic_max_voff = input_vals[indices_voff[-1]]
+        ic_min = np.max([ic_min_idd, ic_min_voff])
+        ic_max = np.min([ic_max_idd, ic_max_voff])
+        icmr_out = ic_max - ic_min
+    elif len(indices_idd) > 0:
+        ic_max = 1.8
+        ic_min = input_vals[indices_idd[0]]
+        icmr_out = 1.8 - ic_min
+    else:
+        # If no valid indices found, set output to 0
+        logger.warning("No valid range found for ICMR calculation.")
+        ic_max = ic_min = 0
+        icmr_out = 0  # No valid range found
+
+    return icmr_out
