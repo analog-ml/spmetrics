@@ -350,3 +350,51 @@ def compute_icmr(logfile: str) -> float:
         icmr_out = 0  # No valid range found
 
     return icmr_out
+
+
+def compute_leakage_power(logfile: str, vdd: float = 1.8) -> float:
+    """
+    Calculates the static power consumption from a simulation log file.
+
+    This function reads simulation data from a specified log file, extracts the output current,
+    estimates the static (leakage) current by identifying periods where the current is stable,
+    and computes the static power as the product of the leakage current and the supply voltage.
+
+    Args:
+        logfile (str): Path to the simulation log file (CSV format).
+        vdd (float, optional): Supply voltage in volts. Defaults to 1.8.
+
+    Returns:
+        float: Estimated static power consumption in watts, or None if static current cannot be determined.
+
+    Notes:
+        - The log file is expected to have either 3 or 6 columns.
+        - The function assumes the output current is in the fourth column (index 3).
+        - Static current is estimated by averaging current values where the difference between
+          consecutive samples is below a threshold (5e-7).
+    """
+
+    def calculate_static_current(simulation_data):
+        static_currents = []
+        threshold = 5e-7
+        for i in range(1, len(simulation_data)):
+            current_diff = np.abs(simulation_data[i] - simulation_data[i - 1])
+            if current_diff <= threshold:
+                static_currents.append(simulation_data[i])
+        return np.mean(static_currents) if static_currents else None
+
+    data_trans = np.genfromtxt(logfile, skip_header=1)
+
+    if data_trans.ndim == 1 or data_trans.shape[1] < 4:
+        raise ValueError(
+            "Log file must have at least 4 columns with current in the 4th column."
+        )
+
+    iout = data_trans[:, 3]
+    Ileak = calculate_static_current(iout)
+
+    if Ileak is None:
+        return None
+
+    static_power = np.abs(Ileak * vdd)
+    return static_power

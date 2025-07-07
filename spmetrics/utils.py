@@ -181,16 +181,51 @@ def setup_ac_simulation(
 
 
 def setup_trans_simulation(
-    netlist: str, input_name: list[str], output_node: list[str]
+    netlist: str, input_name: str = "in1", output_nodes: list[str] = ["out"]
 ) -> str:
+    """
+    Inserts transient simulation commands into a SPICE netlist string.
+
+    Args:
+        netlist (str): The original SPICE netlist as a string.
+        input_name (str, optional): The name of the input node to monitor during simulation. Defaults to "in1".
+        output_nodes (list[str], optional): List of output node names to record during simulation. Defaults to ["out"].
+
+    Returns:
+        str: The modified netlist string with transient simulation commands inserted before the '.end' statement.
+
+    Raises:
+        ValueError: If the '.end' statement is not found in the netlist.
+
+    Example:
+        >>> netlist = "...\\n.end\\n"
+        >>> setup_trans_simulation(netlist, input_name="vin", output_nodes=["vout", "vref"])
+        '...\\n  .control\\n    tran 50n 500u\\n    wrdata output_tran.dat vout vref I(vdd) vin\\n  .endc\\n.end\\n'
+    """
+
     end_index = netlist.index(".end\n")
-    output_nodes_str = " ".join(output_node)
+    output_nodes_str = " ".join(output_nodes)
+
+    # This performs a transient simulation with a time step of 50 ns and a total simulation time of 500 us.
+    # It records the output voltage at the specified output nodes and the input voltage at the specified input node.
+    # The results are written to the file output_tran.dat.
+
+    # The output file will contain the following columns: (guessing from the example, not verified)
+    # (timestep [0],
+    # (real + imaginary or magnitude + phase) of `{output_nodes_str}`: [1-2],
+    # current through vdd: [3],
+    # (real + imaginary or magnitude + phase) of input voltage: [4-5])
+    # TODO: it seems that the first, third and fifth columns are always the same, may be there is some duplicated data?
+    if not output_nodes_str:
+        raise ValueError("Output nodes list cannot be empty.")
+
     simulation_commands = f"""
       .control
         tran 50n 500u
-        wrdata output_tran.dat {output_nodes_str} I(vdd) in1
+        wrdata output_tran.dat {output_nodes_str} I(vdd) {input_name} 
       .endc
      """
+
     new_netlist = netlist[:end_index] + simulation_commands + netlist[end_index:]
     return new_netlist
 
