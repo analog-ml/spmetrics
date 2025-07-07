@@ -4,10 +4,13 @@ from spmetrics.utils import (
     setup_offset_simulation,
     run_ngspice_simulation,
     setup_ac_simulation,
+    setup_icmr_simulation,
 )
 from spmetrics.extractor import (
+    # DC simulation functions
     compute_output_swing,
     compute_offset,
+    compute_icmr,
     # AC simulation functions
     compute_bandwidth,
     compute_unity_gain_bandwidth,
@@ -67,3 +70,13 @@ print(f"AC Gain: {ac_gain:.4f} dB")
 
 
 print(f"\nOffset Voltage: {offset:.4f} V")
+
+
+# Calculate ICMR
+# --------------
+icmr_netlist = setup_icmr_simulation(
+    netlist, target_components=["M4", "M1"], output_node="out"
+)
+run_ngspice_simulation(icmr_netlist)
+icmr = compute_icmr("output_dc_icmr.dat")
+print(f"\nICMR: {icmr:.4f} V")
