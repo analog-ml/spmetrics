@@ -1,5 +1,8 @@
 .title Basic amp
-.include '180nm_bulk.txt'
+.include '~/techlib/180nm_bulk.txt'
+
+* This sets a parameter named Vcm (common-mode voltage) to 0.9 V.
+* Parameters are reusable variables in SPICE — you can use {Vcm} anywhere to reference this value.
 .param Vcm = 0.9
 M3 d3 in2 midp vdd pmos W=1u L=180n
 M4 d4 in1 midp vdd pmos W=1u L=180n
@@ -41,10 +44,18 @@ vbias6 bias6 0 DC 0.9
 
 vdd vdd 0 1.8
 
+* A DC voltage source named [Vcm] is applied between node cm and ground.
+* Its value is set using the parameter Vcm = 0.9.
 Vcm cm 0 DC {Vcm}
+
+* This setup injects a differential signal into the gates of M4 and M3 while maintaining a common-mode level of Vcm = 0.9V.
 Eidp cm in1 diffin 0 1
 Eidn cm in2 diffin 0 -1
+
+* AC magnitude = 1 (used for AC analysis)
+* SINE waveform: amplitude = 1 μV, frequency = 10 kHz (rest are 0)
 Vid diffin 0 AC 1 SIN (0 1u 10k 0 0)
+
 .op
 
 .end
