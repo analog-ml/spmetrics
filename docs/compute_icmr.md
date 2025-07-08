@@ -355,3 +355,5 @@ However:
     
 
 ---
+# References
+- https://aicdesign.org/wp-content/uploads/2018/12/43_SimulationMesurement_of_Op_Amps181213.pdf
