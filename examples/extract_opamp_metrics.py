@@ -1,11 +1,13 @@
 from spmetrics.utils import (
+    run_ngspice_simulation,
+    # Simulation setup functions
     setup_dc_simulation,
     setup_dc_ow_simulation,
     setup_offset_simulation,
-    run_ngspice_simulation,
     setup_ac_simulation,
     setup_icmr_simulation,
     setup_trans_simulation,
+    setup_common_mode_simulation,
 )
 from spmetrics.extractor import (
     # DC simulation functions
@@ -18,7 +20,9 @@ from spmetrics.extractor import (
     compute_phase_margin,
     compute_ac_gain,
     compute_leakage_power,
+    compute_cmrr,
 )
+import shutil
 
 netlist = open("examples/liuLLMbasedAIAgent2025.cir").read()
 
@@ -56,8 +60,8 @@ print(f"\nOffset Voltage: {offset:.4f} V")
 
 # Calculate Bandwidth
 # --------------
-ac_bandwidth_netlist = setup_ac_simulation(netlist, ["in1", "in2"], ["out"])
-run_ngspice_simulation(ac_bandwidth_netlist)
+ac_netlist = setup_ac_simulation(netlist, ["in1", "in2"], ["out"])
+run_ngspice_simulation(ac_netlist)
 bandwidth = compute_bandwidth("output_ac.dat")
 print(f"\nBandwidth: {bandwidth:.4f} Hz")
 
@@ -90,3 +94,25 @@ tran_netlist = setup_trans_simulation(netlist, input_name="in1", output_nodes=["
 run_ngspice_simulation(tran_netlist)
 leakage_power_netlist = compute_leakage_power("output_tran.dat")
 print(f"\nLeakage Power: {leakage_power_netlist:.4f} W")
+
+
+# Calculate CMRR
+# --------------
+common_mode_netlist = setup_common_mode_simulation(ac_netlist)
+shutil.copy("output_ac.dat", "output_ac_diff.dat")
+shutil.copy("output_tran.dat", "output_tran_diff.dat")
+
+run_ngspice_simulation(common_mode_netlist)
+shutil.copy("output_ac.dat", "output_ac_cm.dat")
+shutil.copy("output_tran.dat", "output_tran_cm.dat")
+
+ac_diff_file = "output_ac_diff.dat"
+tran_diff_file = "output_tran_diff.dat"
+ac_cm_file = "output_ac_cm.dat"
+tran_cm_file = "output_tran_cm.dat"
+
+cmrr_tran, cmrr_ac = compute_cmrr(
+    ac_diff_file, tran_diff_file, ac_cm_file, tran_cm_file
+)
+print(f"\nCMRR (Transient): {cmrr_tran:.4f} dB")
+print(f"CMRR (AC): {cmrr_ac:.4f} dB")
