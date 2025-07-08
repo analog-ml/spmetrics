@@ -230,6 +230,33 @@ def setup_trans_simulation(
     return new_netlist
 
 
+def setup_common_mode_simulation(netlist: str) -> str:
+    """
+    Sets up a common mode simulation by modifying the provided SPICE netlist.
+
+    Args:
+        netlist (str): The original SPICE netlist as a string.
+        input_name (list[str]): List of input source names (currently unused).
+        output_node (list[str]): List of output node names to be included in the simulation output.
+
+    Returns:
+        str: Modified netlist string with common mode simulation commands inserted before the '.end' statement.
+    """
+    netlist_cmrr = " "
+    for line in netlist.splitlines():
+        if line.startswith("Vcm"):
+            # Append AC 1 to the Vcm line
+            netlist_cmrr += "Vcm cm 0 DC 0.9 SIN(0 1u 10k 0 0) AC 1\n"
+        elif line.startswith("Vid"):
+            # Remove AC 1 from the Vid line
+            netlist_cmrr += "Vid diffin 0 DC 0\n"
+        else:
+            # Keep other lines unchanged
+            netlist_cmrr += line + "\n"
+
+    return netlist_cmrr
+
+
 def run_ngspice_simulation(netlist: str) -> None:
     """
     Runs a simulation using NGSpice with the provided netlist and writes the output to a specified file.

@@ -398,3 +398,61 @@ def compute_leakage_power(logfile: str, vdd: float = 1.8) -> float:
 
     static_power = np.abs(Ileak * vdd)
     return static_power
+
+
+def compute_cmrr(
+    ac_diff_file: str, tran_diff_file: str, ac_cm_file: str, tran_cm_file: str
+) -> float:
+    """
+    Computes the Common-Mode Rejection Ratio (CMRR) from AC and transient analysis data files.
+
+    Parameters:
+        ac_diff_file (str): Path to the AC analysis data file for differential input.
+        tran_diff_file (str): Path to the transient analysis data file for differential input.
+        ac_cm_file (str): Path to the AC analysis data file for common-mode input.
+        tran_cm_file (str): Path to the transient analysis data file for common-mode input.
+
+    Returns:
+        tuple:
+            cmrr_tran (float): CMRR calculated from transient analysis data, in dB.
+            cmrr_ac (float): CMRR calculated from AC analysis data, in dB.
+
+    Notes:
+        - The function expects the input files to be in a format readable by numpy.genfromtxt.
+        - The AC data files should contain either 3 columns (single output node) or 6 columns (two output nodes).
+        - The function calculates the CMRR as the ratio of differential gain to common-mode gain, expressed in decibels (dB).
+
+    """
+
+    # Get A_{diff}
+    data_ac_vd = np.genfromtxt(ac_diff_file)
+    num_columns = data_ac_vd.shape[1]
+    # for one output node
+    if num_columns == 3:
+        vd = data_ac_vd[:, 1] + 1j * data_ac_vd[:, 2]
+
+    # for 2 output nodes
+    elif num_columns == 6:
+        vd = data_ac_vd[:, 4] + 1j * data_ac_vd[:, 5]
+
+    data_tran_vd = np.genfromtxt(tran_diff_file)
+    out = data_tran_vd[:, 1]
+    altitude_vd = np.max(out) - np.min(out)
+
+    # Get A_{cm}
+    data_ac_vc = np.genfromtxt(ac_cm_file)
+    if num_columns == 3:
+        vc = data_ac_vc[:, 1] + 1j * data_ac_vc[:, 2]
+
+    # for 2 output nodes
+    elif num_columns == 6:
+        vc = data_ac_vc[:, 4] + 1j * data_ac_vc[:, 5]
+
+    data_tran_vc = np.genfromtxt(tran_cm_file)
+    out_vc = data_tran_vc[:, 1]
+    altitude_vc = np.max(out_vc) - np.min(out_vc)
+
+    cmrr_tran = 20 * np.log10(np.abs(altitude_vd / altitude_vc))
+    cmrr_ac = 20 * np.log10(np.abs(vd[0] / vc[0]))
+
+    return cmrr_tran, cmrr_ac
