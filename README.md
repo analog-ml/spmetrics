@@ -18,5 +18,22 @@ python examples/extract_opamp_metrics.py
 ```
 (make sure `ngspice` is installed, and can be invoked from the same terminal.)
 
+
+```
+Metrics                         Values            Unit Conversion
+------------------------------  ----------------  -----------------
+AC Gain                         100.4385 dB
+Transient Gain                  66.0735 dB
+Bandwidth                       157.2304 Hz
+Unity Gain Bandwidth            12589252.8411 Hz  12.59 MHz
+Phase Margin                    54.5044 degrees
+Leakage Power                   0.0077 W          7.69 mW
+CMRR (Transient)                124.14 dB
+CMRR (AC)                       91.9298 dB
+Offset Voltage                  0.0004 V          0.40 mV
+Output Swing                    1.4404 V
+ICMR (Input Common Mode Range)  0.4510 V
+```
+
 ## Contribution
 Any pull requests, open issues and feedback are highly appriciated. 
