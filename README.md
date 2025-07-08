@@ -1,7 +1,7 @@
 # spmetrics
-<center>
+<div style="text-align: center">
 <img src="docs/spmetrics.png" alt="drawing" width="80%"/>
-</center>
+</div>
 
 ## Introduction
 Important note: This work is still progress, and is expected to update frequenly.
