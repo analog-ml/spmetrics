@@ -21,6 +21,7 @@ from spmetrics.extractor import (
     compute_ac_gain,
     compute_leakage_power,
     compute_cmrr,
+    compute_tran_gain,
 )
 import shutil
 import sys
@@ -32,7 +33,7 @@ logger.remove()
 logger.add(sys.stderr, level="INFO")
 
 
-netlist = open("examples/liuLLMbasedAIAgent2025.cir").read()
+netlist = open("examples/liuLLMbasedAIAgent2025_optimized_g1-5.cir").read()
 
 print("\nDC Simulation Netlist:")
 dc_netlist = setup_dc_simulation(netlist, ["in1", "in2"], ["out"])
@@ -103,6 +104,11 @@ run_ngspice_simulation(tran_netlist)
 leakage_power_netlist = compute_leakage_power("output_tran.dat")
 print(f"\nLeakage Power: {leakage_power_netlist:.4f} W")
 
+# Compute transient gain
+# --------------
+tran_gain = compute_tran_gain("output_tran.dat")
+print(f"\nTransient Gain: {tran_gain:.4f} dB")
+
 
 # Calculate CMRR
 # --------------
@@ -129,17 +135,22 @@ print(f"CMRR (AC): {cmrr_ac:.4f} dB")
 print(
     tabulate(
         [
-            ["Output Swing", f"{output_swing:.4f} V"],
-            ["Offset Voltage", f"{offset:.4f} V"],
-            ["Bandwidth", f"{bandwidth:.4f} Hz"],
-            ["Unity Gain Bandwidth", f"{ubw:.4f} Hz"],
-            ["Phase Margin", f"{phase_margin:.4f} degrees"],
             ["AC Gain", f"{ac_gain:.4f} dB"],
-            ["ICMR (Input Common Mode Range)", f"{icmr:.4f} V"],
-            ["Leakage Power", f"{leakage_power_netlist:.4f} W"],
-            ["CMRR (Transient)", f"{cmrr_tran:.4f} dB"],
+            ["Transient Gain", f"{tran_gain:.4f} dB"],
+            ["Bandwidth", f"{bandwidth:.4f} Hz"],
+            ["Unity Gain Bandwidth", f"{ubw:.4f} Hz", f"{ubw/1e6:.2f} MHz"],
+            ["Phase Margin", f"{phase_margin:.4f} degrees"],
+            [
+                "Leakage Power",
+                f"{leakage_power_netlist:.4f} W",
+                f"{leakage_power_netlist*1000:.2f} mW",
+            ],
+            ["CMRR (Transient)", f"{cmrr_tran:.2f} dB"],
             ["CMRR (AC)", f"{cmrr_ac:.4f} dB"],
+            ["Offset Voltage", f"{offset:.4f} V", f"{offset*1000:.2f} mV"],
+            ["Output Swing", f"{output_swing:.4f} V"],
+            ["ICMR (Input Common Mode Range)", f"{icmr:.4f} V"],
         ],
-        headers=["Metrics", "Values"],
+        headers=["Metrics", "Values", "Unit Conversion"],
     )
 )
