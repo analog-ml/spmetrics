@@ -23,6 +23,14 @@ from spmetrics.extractor import (
     compute_cmrr,
 )
 import shutil
+import sys
+
+from tabulate import tabulate
+from loguru import logger
+
+logger.remove()
+logger.add(sys.stderr, level="INFO")
+
 
 netlist = open("examples/liuLLMbasedAIAgent2025.cir").read()
 
@@ -78,7 +86,7 @@ print(f"AC Gain: {ac_gain:.4f} dB")
 print(f"\nOffset Voltage: {offset:.4f} V")
 
 
-# Calculate ICMR
+# Calculate ICMR (Input Common Mode Range)
 # --------------
 icmr_netlist = setup_icmr_simulation(
     netlist, target_components=["M4", "M1"], output_node="out"
@@ -116,3 +124,22 @@ cmrr_tran, cmrr_ac = compute_cmrr(
 )
 print(f"\nCMRR (Transient): {cmrr_tran:.4f} dB")
 print(f"CMRR (AC): {cmrr_ac:.4f} dB")
+
+# Print all metrics in a table
+print(
+    tabulate(
+        [
+            ["Output Swing", f"{output_swing:.4f} V"],
+            ["Offset Voltage", f"{offset:.4f} V"],
+            ["Bandwidth", f"{bandwidth:.4f} Hz"],
+            ["Unity Gain Bandwidth", f"{ubw:.4f} Hz"],
+            ["Phase Margin", f"{phase_margin:.4f} degrees"],
+            ["AC Gain", f"{ac_gain:.4f} dB"],
+            ["ICMR (Input Common Mode Range)", f"{icmr:.4f} V"],
+            ["Leakage Power", f"{leakage_power_netlist:.4f} W"],
+            ["CMRR (Transient)", f"{cmrr_tran:.4f} dB"],
+            ["CMRR (AC)", f"{cmrr_ac:.4f} dB"],
+        ],
+        headers=["Metrics", "Values"],
+    )
+)
