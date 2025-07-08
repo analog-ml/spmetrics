@@ -189,16 +189,16 @@ def compute_unity_gain_bandwidth(logfile: str) -> float:
     else:
         f_l = f_h = ubw = 0
 
-    # return ubw
+    return ubw
 
-    mag = 20 * np.log10(np.abs(v_d))
-    cross_idx = np.where(mag <= 0)[0][0]  # First index where gain falls below 0 dB
-    f1, f2 = frequency[cross_idx - 1], frequency[cross_idx]
-    g1, g2 = mag[cross_idx - 1], mag[cross_idx]
+    # mag = 20 * np.log10(np.abs(v_d))
+    # cross_idx = np.where(mag <= 0)[0][0]  # First index where gain falls below 0 dB
+    # f1, f2 = frequency[cross_idx - 1], frequency[cross_idx]
+    # g1, g2 = mag[cross_idx - 1], mag[cross_idx]
 
-    # Linear interpolation to find exact 0 dB crossing
-    unity_gain_freq = f1 + (0 - g1) * (f2 - f1) / (g2 - g1)
-    return unity_gain_freq
+    # # Linear interpolation to find exact 0 dB crossing
+    # unity_gain_freq = f1 + (0 - g1) * (f2 - f1) / (g2 - g1)
+    # return unity_gain_freq
 
 
 def compute_phase_margin(logfile: str) -> float:
