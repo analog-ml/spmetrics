@@ -1,5 +1,8 @@
 # spmetrics
-![alt text](docs/spmetrics.png)
+<center>
+<img src="docs/spmetrics.png" alt="drawing" width="80%"/>
+</center>
+
 ## Introduction
 Important note: This work is still progress, and is expected to update frequenly.
 
@@ -8,8 +11,8 @@ This Python library is used to extract performance metrics (i.e. gain, phase mar
 
 Characteristics that we take into account when developing `spmetrics` includes:
 
-- **Seperate the definition of circuit components and control blocks**: We aim to make the library more general and highly appliciable to different settings, thus the inputs should be purely define circuit components and their interconnections. We have (and will develop more) `setup_` functions that help to config the input seemlessly, before running the SPICE simulation.
-- **The inputs to `compute_` functions should be the path to simulation log files**: To enable reusability, the same simulation log data could be used for different calculations, thus the try to structure the `compute_` functions mainly accept simulation log files as inputs.
+- **Seperation Circuit Component Definition and Control Blocks**: We aim to make the library more general and highly appliciable to different settings, thus the inputs should be purely define circuit components and their interconnections. We have (and will develop more) `setup_` functions that help to config the input seemlessly, before running the SPICE simulation.
+- **Inputs to `compute_` Functions Are Simulation Log Files Only**: To enable reusability, the same simulation log data could be used for different calculations, thus the try to structure the `compute_` functions mainly accept simulation log files as inputs.
 
 ## Example
 
