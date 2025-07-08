@@ -281,6 +281,47 @@ def compute_ac_gain(logfile: str) -> float:
     return gain
 
 
+def compute_tran_gain(logfile: str) -> float:
+    """
+    Computes the transient gain from a log file containing simulation data.
+
+    The function reads a log file, extracts the output signal, identifies the peak (maximum)
+    and trough (minimum) values, and calculates the gain in decibels (dB) based on the difference
+    between the peak and trough, normalized by a reference value (2 µV).
+
+    Parameters:
+        logfile (str): Path to the log file containing simulation data. The file is expected
+                       to have at least 6 columns, with the first column as time and the second
+                       column as the output signal.
+
+    Returns:
+        float: The computed transient gain in decibels (dB).
+
+    Raises:
+        ValueError: If the input file does not have exactly 6 columns.
+    """
+    data_tran = np.genfromtxt(logfile, skip_header=1)
+    num_columns = data_tran.shape[1]
+
+    # for one output node
+    if num_columns == 6:
+        time = data_tran[:, 0]
+        out = data_tran[:, 1]
+
+        # Find the peaks (local maxima)
+        peak = np.max(out)
+
+        # Find the troughs (local minima) by inverting the signal
+        trough = np.min(out)
+
+        # Compute the gain using the difference between average peak and average trough
+        tran_gain = 20 * np.log10(np.abs(peak - trough) / 0.000002)
+    else:
+        raise ValueError("The input file must have 2 columns.")
+
+    return tran_gain
+
+
 def compute_icmr(logfile: str) -> float:
     """
     Computes the input common-mode range (ICMR) from a logfile containing DC simulation data.
