@@ -83,10 +83,10 @@ class SpMetricsExtractor:
 
         self.metrics["offset_voltage"] = offset
 
-    def _run_ac_simulation(self):
+    def _run_ac_simulation(self, input_nodes=["in1", "in2"], output_nodes=["out"]):
         # Calculate Bandwidth
         # --------------
-        ac_netlist = setup_ac_simulation(self.netlist, ["in1", "in2"], ["out"])
+        ac_netlist = setup_ac_simulation(self.netlist, input_nodes, output_nodes)
         run_ngspice_simulation(ac_netlist)
         bandwidth = compute_bandwidth("output_ac.dat")
         print(f"\nBandwidth: {bandwidth:.4f} Hz")
