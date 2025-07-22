@@ -21,6 +21,11 @@ python examples/extract_opamp_metrics.py
 ```
 (make sure `ngspice` is installed, and can be invoked from the same terminal.)
 
+## Testing
+
+```
+python -m unittest discover tests
+```
 
 ```
 Metrics                         Values            Unit Conversion
