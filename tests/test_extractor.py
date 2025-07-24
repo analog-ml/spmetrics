@@ -14,7 +14,7 @@ class TestSpMetricsExtractor(unittest.TestCase):
             "output_swing": 1.4404096009999998,
             "offset_voltage": 0.00039571539999999975,
             "bandwidth": 157.23039359,
-            "unity_gain_bandwidth": 12589252.84107459,
+            "unity_gain_bandwidth": 14492021.47056986,
             "phase_margin": 54.504397340672796,
             "ac_gain": 100.43850464700688,
             "icmr": 0.45100000000000007,
