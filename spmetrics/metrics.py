@@ -237,14 +237,9 @@ def compute_phase_margin(logfile: str) -> float:
     frequency_at_0_dB = frequency[index_at_0_dB]
     phase_at_0_dB = phase[index_at_0_dB]
 
-    initial_phase = phase[0]
-    tolerance = 15
-    if np.isclose(initial_phase, 180, atol=tolerance):
-        return phase_at_0_dB
-    elif np.isclose(initial_phase, 0, atol=tolerance):
-        return 180 - np.abs(phase_at_0_dB)
-    else:
-        return 0
+    # Calculate phase margin
+    # Phase margin is defined as the difference between the phase at 0 dB and -180 degrees
+    return phase_at_0_dB - (-180)
 
 
 def compute_ac_gain(logfile: str) -> float:
